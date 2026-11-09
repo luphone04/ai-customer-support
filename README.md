@@ -173,7 +173,3 @@ This runs the decision pipeline with real model calls and knowledge-base access.
 ## Built with
 
 Python · FastAPI · Pydantic AI · Anthropic models · Supabase Postgres · Gmail API · React · TypeScript · Tailwind CSS · shadcn/ui · Docker
-
-## Credits
-
-Built using concepts from Datalumina’s [Document Copilot tutorial](https://learn.datalumina.com/docs/document-copilot), adapted to an email support workflow with product rules and human handoffs.
