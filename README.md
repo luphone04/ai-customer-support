@@ -14,13 +14,33 @@ Customers continue using email. The team uses a dashboard to view conversations,
 
 ## Demo
 
-*Screenshots coming soon.*
+### Customer emails
 
-| Screenshot | What it will show |
-| --- | --- |
-| Tickets | A customer conversation and an escalated ticket’s proposed action |
-| Events | Processing status, attempts, and errors |
-| Knowledge base | Editing the guidance used by the assistant |
+**Product advice** — A customer asks which paddle board suits a 90 kg rider.
+
+![Paddle board recommendation in Gmail](docs/images/email-board-recommendation.png)
+
+**Troubleshooting** — A customer reporting air loss receives valve-check instructions and a request for follow-up details.
+
+![Valve-check instructions sent in response to a leaking board](docs/images/email-valve-check.png)
+
+**Human handoff** — A refund request receives an acknowledgement that a colleague will reply.
+
+![Handoff acknowledgement for a refund request in Gmail](docs/images/email-human-handoff.png)
+
+### Support dashboard
+
+**Tickets** — The team can read the conversation and see that the refund request has been escalated.
+
+![Escalated refund ticket and its conversation in the dashboard](docs/images/escalated-ticket.png)
+
+**Events** — Processing history shows each event’s status, attempts, and errors.
+
+![Events dashboard showing two processed emails](docs/images/processing-events.png)
+
+**Knowledge base** — The team can edit the guidance used by the assistant, including escalation rules.
+
+![Knowledge-base editor displaying escalation rules](docs/images/knowledge-base.png)
 
 ## Architecture
 
