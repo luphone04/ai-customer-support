@@ -4,6 +4,8 @@ An email support assistant for **Harbor & Pine**, a home and outdoor store selli
 
 Customers continue using email. The team uses a dashboard to view conversations, check processing activity, and update the knowledge base.
 
+**Run it on your own computer with Docker.** See [Run locally](#run-locally) for setup. Gmail, Anthropic, and Supabase still require an internet connection.
+
 ## What it does
 
 - Answers questions about paddle boards, shelving, returns, warranties, and shipping.
@@ -133,6 +135,91 @@ flowchart LR
     A[Edit guidance in the dashboard] --> B[Save to the knowledge base]
     B --> C[Available for future replies]
 ```
+
+## Run locally
+
+The dashboard, API, and email worker run on your computer. No rented server is needed. The worker runs while your computer is awake and Docker is running; model calls use your own Anthropic credits.
+
+### 1. Get ready
+
+- Install Docker Desktop and keep it open.
+- Install [uv](https://docs.astral.sh/uv/getting-started/installation/) for the Python setup scripts. The project uses Python 3.13 or newer.
+- Have an Anthropic API key, a Supabase project, and a Gmail mailbox for testing.
+- Clone or download this repository and open a terminal in its root folder.
+
+Install the Python dependencies and create your configuration file. If you already have a configured `.env`, keep it and skip the copy command.
+
+```bash
+uv sync
+cp .env.example .env
+```
+
+### 2. Connect Gmail
+
+In Google Cloud, enable the Gmail API, configure OAuth consent, and create an OAuth client of type **Desktop app**. For an external app in testing mode, add your test mailbox as a test user. Download the client credentials as `credentials.json` into the project root. Google's [Gmail setup guide](https://developers.google.com/workspace/gmail/api/quickstart/python) covers the account setup.
+
+Run the project's authorisation script and sign in with the mailbox the bot will use:
+
+```bash
+uv run python scripts/get_refresh_token.py
+```
+
+Copy the three printed `GOOGLE_*` values into `.env`. This script requests permission to read, label, and send mail. Keep `.env` and `credentials.json` private; both are gitignored.
+
+### 3. Set up the database and configuration
+
+For a fresh Supabase database, run [the table migration](supabase/migrations/20261109044852_create_tables.sql) once in the Supabase SQL Editor. Skip this if the tables already exist.
+
+Complete these values in `.env`:
+
+| Setting | What to enter |
+| --- | --- |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN` | Values from the Gmail authorisation script |
+| `DATABASE_URL` | Your Supabase Postgres connection string, including the database password |
+| `ANTHROPIC_API_KEY` | Your Anthropic API key |
+| `DASHBOARD_USERNAME`, `DASHBOARD_PASSWORD` | Your chosen dashboard login; the password must not be empty |
+| `CLASSIFIER_MODEL`, `AGENT_MODEL` | Anthropic model identifiers available to your account, using the `anthropic:` prefix |
+| `POLL_INTERVAL_SECONDS` | Seconds to wait between inbox checks; `30` is useful for a demo |
+
+Use a direct database connection or the session pooler if your network needs IPv4. See [Supabase connection options](https://supabase.com/docs/guides/database/connecting-to-postgres). This is a Postgres URL, not the Supabase website URL or an API key.
+
+Load the included company guidance:
+
+```bash
+uv run python -m scripts.seed_knowledge_base
+```
+
+The seed script loads `knowledge_base/*.md` into the database. Re-running it updates entries with matching section and title, so it can overwrite edits made in the dashboard.
+
+### 4. Start the app
+
+Use a dedicated test mailbox: **starting the worker sends real replies to eligible inbox emails, including older unprocessed messages.** Stop any development poller already running in another terminal.
+
+```bash
+docker compose up -d --build
+docker compose ps
+```
+
+Docker builds the React dashboard and starts the `api` and `poller` services. You do not need Node.js installed separately for this route.
+
+Open **[localhost:8080](http://localhost:8080)** and sign in with your dashboard credentials. The dashboard is available only on your computer.
+
+To start only the dashboard and API, use `docker compose up -d --build api` on a stopped setup. The **Check inbox now** button still processes real emails when clicked.
+
+### 5. Try it
+
+Send a message from another email address to your test mailbox, such as “Which paddle board should I get? I weigh 90 kg.” Wait for a poll, then check the reply in Gmail and the ticket in the dashboard.
+
+| Task | Command |
+| --- | --- |
+| Follow worker activity | `docker compose logs -f poller` |
+| Pause automatic email processing | `docker compose stop poller` |
+| Resume the worker | `docker compose up -d poller` |
+| Stop both services | `docker compose stop` |
+| Apply code or configuration changes | `docker compose up -d --build` |
+| Check API health | `curl http://localhost:8080/health` |
+
+If Docker cannot connect, open Docker Desktop and wait for it to finish starting. If Gmail reports `invalid_grant`, rerun the authorisation script, update `.env`, and recreate the services with `docker compose up -d`.
 
 ## Evaluation
 
