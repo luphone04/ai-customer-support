@@ -73,23 +73,46 @@ The knowledge base and support records live in Supabase Postgres. FastAPI serves
 
 “I weigh 90 kg. Which paddle board should I choose?”
 
-The classifier selects paddle boards. The agent reads the product and brand guidance, writes an answer, and passes it through the decision checks. The application sends the reply and saves the conversation.
+```mermaid
+flowchart LR
+    A[Customer asks a question] --> B[Read relevant guidance]
+    B --> C[Write and check the answer]
+    C --> D[Send reply]
+```
 
 ### A product problem
 
 “The pump was missing from my order.”
 
-If the order number is missing, the assistant asks for details. Once the issue includes an order number, the rules select `ship-part` as the proposed next step. A colleague handles the shipment; the customer receives a handoff acknowledgement.
+```mermaid
+flowchart LR
+    A[Customer reports a missing pump] --> B{Order number provided?}
+    B -->|No| C[Ask for details]
+    B -->|Yes| D[Acknowledge and hand to a colleague]
+```
+
+The proposed action is to ship the missing part. A colleague arranges the shipment.
 
 ### A human handoff
 
 “I want my money back.”
 
-The classifier flags the request for a person. The application sends an acknowledgement, marks the ticket as escalated, and adds the `needs-human` Gmail label. Further messages in that thread are left to the team until the label is removed.
+```mermaid
+flowchart LR
+    A[Customer requests a refund] --> B[Identify need for a person]
+    B --> C[Send acknowledgement]
+    C --> D[Flag thread for the team]
+```
+
+The assistant leaves further messages to the team until the `needs-human` label is removed in Gmail.
 
 ### A knowledge update
 
-A team member edits an entry in the dashboard. The change is saved to Postgres and becomes available the next time the agent retrieves that section.
+```mermaid
+flowchart LR
+    A[Edit guidance in the dashboard] --> B[Save to the knowledge base]
+    B --> C[Available for future replies]
+```
 
 ## Evaluation
 
